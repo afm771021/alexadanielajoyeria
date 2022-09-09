@@ -31,26 +31,43 @@ class mss_commission_to_pay(models.Model):
 
      def pay_commissions(self):
           print ('boton header')
+          order_paid = True
           for record in self:
                record.commision_status = True
                if record.commission_paid == 0.0:
                     record.commission_pay_date = datetime.strftime(fields.Datetime.context_timestamp(record, datetime.now()), "%Y-%m-%d %H:%M:%S")
                     record.commission_paid = record.commission_amount
+                    sellers = self.env['mss_commissions.commissions_to_pay'].search([('sale_id', '=', record.sale_id.id)])
+                    print(sellers)
+                    print('seller.comission_status')
+                    for seller in sellers:
+                         print(seller)
+                         if not seller.commision_status:
+                              order_paid = False
+                    print(order_paid)
+                    if order_paid:
+                         print(record.sale_id.id)
+                         order = self.env['sale.order'].search([('id', '=', record.sale_id.id)])
+                         order.write({
+                              'commission_paid': True
+                         })
+                         print(order)
 
 class CustomSaleOrder(models.Model):
      _inherit = 'sale.order'
 
      seller_id = fields.Many2one(string='Vendedor(a)', comodel_name='hr.employee', required=True)
-     commission_paid = fields.Boolean(String="Comisión pagada", default="False")
+     commission_paid = fields.Boolean(String="Comisión pagada", default="False", readonly=True)
 
 
 class LogGetCommissions(models.Model):
      _name = 'mss_commissions.loggetcommissions'
      _description = 'Generación de registros para pago de comisiones'
 
-     logdate = fields.Datetime(string="Fecha")
+     logdate = fields.Datetime(string="Fecha", default=datetime.now(), readonly=True)
      logcomments = fields.Text(string="Comentarios")
      logstatus = fields.Boolean(string="Generados", readonly=True)
+
 
      def button_generar(self):
           print('hola desde el boton')
@@ -87,7 +104,7 @@ class LogGetCommissions(models.Model):
                          self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
 
                     #Buscamos el empleado de nivel superior N2
-                    # print('search():', order, order.name, order.seller_id, order.seller_id.id)
+                    #print('search():', order, order.name, order.seller_id, order.seller_id.id)
                     empleado = self.env['hr.employee'].search([('id', '=', order.seller_id.id)])
 
                     if empleado.parent_id is not None:
@@ -115,7 +132,7 @@ class LogGetCommissions(models.Model):
                               self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
 
                     # Buscamos el empleado de nivel superior N3
-                    # print('search():', order, order.name, order.seller_id, order.seller_id.id)
+                    #print('search():', order, order.name, order.seller_id, order.seller_id.id)
                     empleado = self.env['hr.employee'].search([('id', '=', empleado.parent_id.id)])
 
                     if empleado.parent_id is not None:
@@ -142,8 +159,9 @@ class LogGetCommissions(models.Model):
                          if commission_value > 0.0:
                               self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
 
+
                     # print('search():', empleado, empleado.id, empleado.parent_id, empleado.name)
-                    # print('search():', empleado.id, empleado.parent_id.name, empleado.name)
+                    #print('search():', empleado.id, empleado.parent_id.name, empleado.name)
 
 
      #logdate

@@ -6,7 +6,7 @@
       <field name="name">MSS_comisiones tree</field>
       <field name="model">mss_comisiones.mss_comisiones</field>
       <field name="arch" type="xml">
-        <tree string="comisiones">
+        <tree string="comisiones" delete="false">
           <field name="sale_level"/>
           <field name="sale_amount_min"/>
           <field name="sale_amount_max"/>
@@ -21,7 +21,7 @@
       <field name="name">MSS_comisiones form</field>
       <field name="model">mss_comisiones.mss_comisiones</field>
       <field name="arch" type="xml">
-          <form string="comisiones">
+          <form string="comisiones" delete="false">
             <sheet>
               <group name="group_top">
                 <group name="group_left">
@@ -44,7 +44,7 @@
       <field name="name">MSS_pay_commission tree</field>
       <field name="model">mss_commissions.commissions_to_pay</field>
       <field name="arch" type="xml">
-        <tree string="pagocomisiones" create="false" edit="false">
+        <tree string="pagocomisiones" create="false" edit="false" delete="false">
           <header>
             <button name="pay_commissions" string="Pagar comisiones" class="oe_highlight" type="object" />
           </header>
@@ -66,7 +66,7 @@
       <field name="name">MSS_pay_commission form</field>
       <field name="model">mss_commissions.commissions_to_pay</field>
       <field name="arch" type="xml">
-          <form string="pagocomisiones" create="false" edit="false">
+          <form string="pagocomisiones" create="false" edit="false" delete="false">
             <sheet>
               <group name="group_top">
                 <group name="group_left">
@@ -92,7 +92,7 @@
           <field name="name">MSS_commissiones tree</field>
           <field name="model">mss_commissions.loggetcommissions</field>
           <field name="arch" type="xml">
-            <tree string="logcommissions">
+            <tree string="logcommissions" edit="false" delete="false">
               <field name="logdate"/>
               <field name="logcomments"/>
               <field name="logstatus"/>
@@ -105,7 +105,7 @@
       <field name="name">MSS_commissiones form</field>
       <field name="model">mss_commissions.loggetcommissions</field>
       <field name="arch" type="xml">
-          <form string="comisiones">
+          <form string="comisiones" edit="false" delete="false">
             <sheet>
                 <div class="oe_button_box" name="button_box">
                 <button class="oe_stat_button" name="button_generar" type="object" icon="fa-play-circle" string ="Generar registros"
@@ -134,6 +134,9 @@
        <field name="arch" type="xml">
          <xpath expr="//field[@name='partner_id']" position="before">
            <field name="seller_id"/>
+         </xpath>
+         <xpath expr="//field[@name='payment_term_id']" position="after">
+           <field name="commission_paid"/>
          </xpath>
          <!--<data>
            <field name ="invoice_status" position="attributes">
