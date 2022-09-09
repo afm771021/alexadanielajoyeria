@@ -44,15 +44,17 @@
       <field name="name">MSS_pay_commission tree</field>
       <field name="model">mss_commissions.commissions_to_pay</field>
       <field name="arch" type="xml">
-        <tree string="pagocomisiones">
+        <tree string="pagocomisiones" create="false" edit="false">
           <header>
             <button name="pay_commissions" string="Pagar comisiones" class="oe_highlight" type="object" />
           </header>
           <field name="sale_id"/>
           <field name="seller_id"/>
+          <field name="seller_level"/>
           <field name="sale_amount"/>
           <field name="commission_amount"/>
           <field name="sale_date"/>
+          <field name="commision_status"/>
           <field name="commission_pay_date"/>
           <field name="commission_paid"/>
         </tree>
@@ -64,7 +66,7 @@
       <field name="name">MSS_pay_commission form</field>
       <field name="model">mss_commissions.commissions_to_pay</field>
       <field name="arch" type="xml">
-          <form string="pagocomisiones">
+          <form string="pagocomisiones" create="false" edit="false">
             <sheet>
               <group name="group_top">
                 <group name="group_left">
@@ -77,6 +79,7 @@
                    <field name="sale_date"/>
                    <field name="commission_pay_date"/>
                    <field name="commission_paid"/>
+                   <field name="commision_status"/>
                 </group>
               </group>
             </sheet>
@@ -159,7 +162,7 @@
       <field name="res_model">mss_commissions.commissions_to_pay</field>
       <field name="view_mode">tree,form</field>
       <field name="help" type="html">
-        <p class="oe_view_nocontent_create">Pagop de comisiones</p>
+        <p class="oe_view_nocontent_create">Pago de comisiones</p>
         <p>Click en 'CREAR' para añadir nuevos elementos</p>
       </field>
     </record>
@@ -185,7 +188,7 @@
               parent="mss_comisiones.menu_1"
               action="mss_comisiones.action_server1" />
 
-    <menuitem name="Generar Registros"
+    <menuitem name="Obtener Ventas"
               id="mss_comisiones.menu_1_list"
               parent="mss_comisiones.menu_1"
               action="mss_comisiones.action_server2"/>
