@@ -57,7 +57,7 @@ class CustomSaleOrder(models.Model):
      _inherit = 'sale.order'
 
      seller_id = fields.Many2one(string='Vendedor(a)', comodel_name='hr.employee', required=True)
-     commission_paid = fields.Boolean(String="Comisión pagada", default="False", readonly=True)
+     commission_paid = fields.Boolean(String="Comisión pagada", default=False, readonly=True)
 
 
 class LogGetCommissions(models.Model):
@@ -72,6 +72,8 @@ class LogGetCommissions(models.Model):
      def button_generar(self):
           print('hola desde el boton')
           commission_value = 0
+          sale_sellers_to_pay = 0
+          saleorder_no_commission = 0
           self.logstatus = True
           orders = self.env['sale.order'].search([('invoice_status', '=', 'invoiced'), ('commission_paid', '=', False)])
           for order in orders:
@@ -80,6 +82,8 @@ class LogGetCommissions(models.Model):
 
                # Si no existe la Orden
                if registered_orders == 0:
+                    print('La orden a pagar no ha sido registrada anteriormente, numero de orden:')
+                    print(order.id)
                     # Buscamos en el catálogo de comisiones el valor para calcular la comisión del nivel N1
                     _commission_valuesN1 = self.env['mss_comisiones.mss_comisiones'].search([('sale_level', '=', 1), ('commision_status', '=', True)])
                     for _commission_value in _commission_valuesN1:
@@ -89,6 +93,9 @@ class LogGetCommissions(models.Model):
                          else:
                               commission_value = 0.0
                     # Guardamos el registro para el pago de la comision a nivel N1
+                    print('vendedor N1:')
+                    print(order.seller_id.id)
+                    sale_sellers_to_pay = sale_sellers_to_pay + 1
                     _commissions_to_pay = {
                          'sale_id': order.id,
                          'seller_id': order.seller_id.id,
@@ -99,15 +106,23 @@ class LogGetCommissions(models.Model):
                          'commission_paid': 0.0,
                          'commision_status': False
                     }
-                    print(_commissions_to_pay)
+
                     if commission_value > 0.0:
                          self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                         print(_commissions_to_pay)
+                    else:
+                         saleorder_no_commission = saleorder_no_commission + 1
+                         print('No hay comision a pagar')
 
                     #Buscamos el empleado de nivel superior N2
                     #print('search():', order, order.name, order.seller_id, order.seller_id.id)
                     empleado = self.env['hr.employee'].search([('id', '=', order.seller_id.id)])
+                    #print('empleado:')
+                    #print(empleado)
+                    #print('empleado.parent_id.id:')
+                    #print(empleado.parent_id.id)
 
-                    if empleado.parent_id is not None:
+                    if empleado.parent_id:
                          _commission_valuesN2 = self.env['mss_comisiones.mss_comisiones'].search(
                               [('sale_level', '=', 2), ('commision_status', '=', True)])
                          for _commission_value in _commission_valuesN2:
@@ -116,7 +131,12 @@ class LogGetCommissions(models.Model):
                                    break
                               else:
                                    commission_value = 0.0
-                         # Guardamos el registro para el pago de la comision a nivel N1
+                         # Guardamos el registro para el pago de la comision a nivel N2
+
+                         print('vendedor N2:')
+                         print(empleado.parent_id.id)
+                         sale_sellers_to_pay = sale_sellers_to_pay + 1
+
                          _commissions_to_pay = {
                               'sale_id': order.id,
                               'seller_id': empleado.parent_id.id,
@@ -127,42 +147,60 @@ class LogGetCommissions(models.Model):
                               'commission_paid': 0.0,
                               'commision_status': False
                          }
-                         print(_commissions_to_pay)
                          if commission_value > 0.0:
                               self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                              print(_commissions_to_pay)
+                         else:
+                              saleorder_no_commission = saleorder_no_commission + 1
+                              print('No hay comision a pagar')
 
                     # Buscamos el empleado de nivel superior N3
                     #print('search():', order, order.name, order.seller_id, order.seller_id.id)
-                    empleado = self.env['hr.employee'].search([('id', '=', empleado.parent_id.id)])
+                         empleado = self.env['hr.employee'].search([('id', '=', empleado.parent_id.id)])
 
-                    if empleado.parent_id is not None:
-                         _commission_valuesN3 = self.env['mss_comisiones.mss_comisiones'].search(
-                              [('sale_level', '=', 3), ('commision_status', '=', True)])
-                         for _commission_value in _commission_valuesN3:
-                              if order.amount_total >= _commission_value.sale_amount_min and order.amount_total <= _commission_value.sale_amount_max:
-                                   commission_value = _commission_value.sale_commision
-                                   break
+                         if empleado.parent_id is not None:
+                              _commission_valuesN3 = self.env['mss_comisiones.mss_comisiones'].search(
+                                   [('sale_level', '=', 3), ('commision_status', '=', True)])
+                              for _commission_value in _commission_valuesN3:
+                                   if order.amount_total >= _commission_value.sale_amount_min and order.amount_total <= _commission_value.sale_amount_max:
+                                        commission_value = _commission_value.sale_commision
+                                        break
+                                   else:
+                                        commission_value = 0.0
+                              # Guardamos el registro para el pago de la comision a nivel N3
+                              print('vendedor N3:')
+                              print(empleado.parent_id.id)
+                              sale_sellers_to_pay = sale_sellers_to_pay + 1
+
+                              _commissions_to_pay = {
+                                   'sale_id': order.id,
+                                   'seller_id': empleado.parent_id.id,
+                                   'seller_level': '3',
+                                   'sale_amount': order.amount_total,
+                                   'commission_amount': commission_value,
+                                   'sale_date': order.date_order,
+                                   'commission_paid': 0.0,
+                                   'commision_status': False
+                              }
+                              if commission_value > 0.0:
+                                   self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                                   print(_commissions_to_pay)
                               else:
-                                   commission_value = 0.0
-                         # Guardamos el registro para el pago de la comision a nivel N1
-                         _commissions_to_pay = {
-                              'sale_id': order.id,
-                              'seller_id': empleado.parent_id.id,
-                              'seller_level': '3',
-                              'sale_amount': order.amount_total,
-                              'commission_amount': commission_value,
-                              'sale_date': order.date_order,
-                              'commission_paid': 0.0,
-                              'commision_status': False
-                         }
-                         print(_commissions_to_pay)
-                         if commission_value > 0.0:
-                              self.env['mss_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                                   saleorder_no_commission = saleorder_no_commission + 1
+                                   print('No hay comision a pagar')
+
+                    #Si el numero de vendedores a pagar tienen comision 0.0 no se debe realizar ningun pago y se pone la orden como pagada
+                    print(sale_sellers_to_pay)
+                    print(saleorder_no_commission)
+                    if sale_sellers_to_pay == saleorder_no_commission:
+                         print ('No hay pago de comisiones, establecemos la orden como pagada')
+                         order.write({
+                              'commission_paid': True
+                         })
 
 
                     # print('search():', empleado, empleado.id, empleado.parent_id, empleado.name)
                     #print('search():', empleado.id, empleado.parent_id.name, empleado.name)
-
 
      #logdate
      #logcomments
