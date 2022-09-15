@@ -57,16 +57,16 @@ class CustomSaleOrder(models.Model):
      _inherit = 'sale.order'
 
      seller_id = fields.Many2one(string='Vendedor(a)', comodel_name='hr.employee', required=True)
-     commission_paid = fields.Boolean(String="Comisión pagada", default=False, readonly=True)
+     commission_paid = fields.Boolean(String='Comisión pagada', default=False, readonly=True)
 
 
 class LogGetCommissions(models.Model):
      _name = 'mss_commissions.loggetcommissions'
      _description = 'Generación de registros para pago de comisiones'
 
-     logdate = fields.Datetime(string="Fecha", default=datetime.now(), readonly=True)
-     logcomments = fields.Text(string="Comentarios")
-     logstatus = fields.Boolean(string="Generados", readonly=True)
+     logdate = fields.Datetime(string='Fecha', default=datetime.now(), readonly=True)
+     logcomments = fields.Text(string='Comentarios')
+     logstatus = fields.Boolean(string='Generados', readonly=True)
 
 
      def button_generar(self):
@@ -158,7 +158,7 @@ class LogGetCommissions(models.Model):
                     #print('search():', order, order.name, order.seller_id, order.seller_id.id)
                          empleado = self.env['hr.employee'].search([('id', '=', empleado.parent_id.id)])
 
-                         if empleado.parent_id is not None:
+                         if empleado.parent_id:
                               _commission_valuesN3 = self.env['mss_comisiones.mss_comisiones'].search(
                                    [('sale_level', '=', 3), ('commision_status', '=', True)])
                               for _commission_value in _commission_valuesN3:
