@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Powered by Kanak Infosystems LLP.
-# © 2020 Kanak Infosystems LLP. (<https://www.kanakinfosystems.com>).
+# Powered by Mastermind Software Services
+# © 2022 Mastermind Software Services (<https://www.mss.mx>).
 
 {
     'name': 'Sale Loyalty',
@@ -14,8 +14,8 @@
         - Give Discount to customer based on the customer loyalty points and based on reward rule
     """,
     'license': 'OPL-1',
-    'author': 'Kanak Infosystems LLP.',
-    'website': 'https://www.kanakinfosystems.com',
+    'author': 'Mastermind Software Services',
+    'website': 'https://www.mss.mx',
     'depends': ['sale_management'],
     'data': [
         'security/sale_loyalty_security.xml',

@@ -21,6 +21,16 @@
                         <field name="cumulative" />
                         <field name="company_id" ref="base.main_company" />
                     </group>
+                    <separator string="Bonus" colspan="4" />
+                    <p>Rules change how loyalty bonus are earned for specific order amount</p>
+                    <field name="bonus_ids" colspan="4" nolabel="1">
+                        <tree string="Bonuses">
+                            <field name="name" />
+                            <field name="order_min_amount" />
+                            <field name="order_max_amount" />
+                            <field name="pp_order" />
+                        </tree>
+                    </field>
                     <separator string="Rules" colspan="4" />
                     <p>Rules change how loyalty points are earned for specific products or categories</p>
                     <field name="rule_ids" colspan="4" nolabel="1">
@@ -55,6 +65,29 @@
                         <field name="points_expiry_days" attrs="{'invisible':[('has_points_expiry','=',False)],'required':[('has_points_expiry','=',True)]}" />
                     </group>
                 </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_loyalty_bonus_form" model="ir.ui.view">
+        <field name="name">sale.loyalty.bonus.form</field>
+        <field name="model">sale.loyalty.bonus</field>
+        <field name="arch" type="xml">
+            <form string="Loyalty Bonus">
+                <div class="oe_title">
+                    <label class="oe_edit_only" for="name" string="Bonus Name" />
+                    <h1>
+                        <field name="name" />
+                    </h1>
+                </div>
+                <group>
+                    <group>
+                        <field name="order_min_amount" />
+                        <field name="order_max_amount" />
+                    </group>
+                </group>
+                <group col="6">
+                    <field name="pp_order" />
+                </group>
             </form>
         </field>
     </record>

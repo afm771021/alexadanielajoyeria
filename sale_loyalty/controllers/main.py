@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Powered by Kanak Infosystems LLP.
-# © 2020 Kanak Infosystems LLP. (<https://www.kanakinfosystems.com>).
+# Powered by Mastermind Software Services
+# © 2022 Mastermind Software Services (<https://www.mss.mx>).
 
 from odoo import http, _
 from odoo.addons.portal.controllers.portal import CustomerPortal

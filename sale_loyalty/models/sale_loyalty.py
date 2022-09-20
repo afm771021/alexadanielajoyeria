@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Powered by Kanak Infosystems LLP.
-# © 2020 Kanak Infosystems LLP. (<https://www.kanakinfosystems.com>).
+# Powered by Mastermind Software Services
+# © 2022 Mastermind Software Services (<https://www.mss.mx>).
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
@@ -22,6 +22,7 @@ class LoyaltyProgram(models.Model):
         default='HALF-UP', help='The tie-breaking rule used for float rounding operations')
     rule_ids = fields.One2many('sale.loyalty.rule', 'loyalty_program_id', string='Rules')
     reward_ids = fields.One2many('sale.loyalty.reward', 'loyalty_program_id', string='Rewards')
+    bonus_ids = fields.One2many('sale.loyalty.bonus', 'loyalty_program_id', string='Bonus')
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     product_excluded_type = fields.Selection([
         ('type', 'Product Type'), ('categories', 'Categories'), ('products', 'Products')], string='Product Exclude Type')
@@ -105,6 +106,30 @@ class LoyaltyReward(models.Model):
         if self.reward_type:
             if self.reward_type == 'discount':
                 self.discount_product_id = self.env.ref('sale_loyalty.sale_loyalty_product_discount').id
+
+
+class LoyaltyBonusRule(models.Model):
+    _name = 'sale.loyalty.bonus'
+    _description = 'Sale Loyalty Bonus'
+
+    name = fields.Char(index=True, required=True, help="An internal identification for this loyalty program bonus")
+    loyalty_program_id = fields.Many2one('sale.loyalty.program', string='Loyalty Program', help='The Loyalty Program this exception belongs to')
+    order_min_amount = fields.Float(string='Monto de venta mínimo')
+    order_max_amount = fields.Float(string="Monto de venta máximo")
+    pp_order = fields.Float(string='Points Per Order', digits='Sale Loyalty', help='How many points the order will earn per value sold')
+    company_id = fields.Many2one(related='loyalty_program_id.company_id', string='Company', store=True, readonly=True, index=True)
+
+    @api.constrains('order_min_amount')
+    def validate_order_min_amount(self):
+        for record in self:
+            if record.order_min_amount <= 0:
+                raise ValidationError(_("Please set a strictly positive value."))
+
+    @api.constrains('order_max_amount')
+    def validate_order_min_amount(self):
+        for record in self:
+            if record.order_max_amount <= 0:
+                raise ValidationError(_("Please set a strictly positive value."))
 
 
 class SaleLoyaltyPointsHistory(models.Model):
