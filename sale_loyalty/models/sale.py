@@ -31,7 +31,9 @@ class SaleOrder(models.Model):
         for order in self:
             order.points_total = 0.00
             if order.points_won or order.points_spent:
+                print('compute_points_total:')
                 order.points_total = order.points_won + order.points_spent
+                print(order.points_total)
 
     @api.depends('order_line.total_spent_point')
     def compute_points_spent(self):
@@ -63,7 +65,11 @@ class SaleOrder(models.Model):
                     points += float_round(loyalty.pp_order, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
                 if (loyalty.rule_ids and loyalty.cumulative) or (not loyalty.rule_ids):
                     if loyalty.pp_currency:
+                        print('compute_points_won:')
                         points += float_round(sum(order_lines.mapped('price_total')) * loyalty.pp_currency, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
+                        print(points)
+                        print('sum(order_lines.mapped)')
+                        print(sum(order_lines.mapped('price_total')))
                     if loyalty.pp_product:
                         total_point = sum(order_lines.mapped('product_uom_qty')) * loyalty.pp_product
                         points += float_round(total_point, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
@@ -148,10 +154,6 @@ class SaleOrder(models.Model):
         for order in self:
             points_history = self.env['sale.loyalty.points.history'].search([('sale_order_id', '=', order.id)])
             if points_history:
-                # print(points_history)
-                # points_history.write({
-                #     'points': 0.00
-                # })
                 order.partner_id.loyalty_points -= order.points_won
                 points_history.action_cancel()
         return res
