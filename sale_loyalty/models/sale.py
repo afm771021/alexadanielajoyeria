@@ -31,9 +31,7 @@ class SaleOrder(models.Model):
         for order in self:
             order.points_total = 0.00
             if order.points_won or order.points_spent:
-                print('compute_points_total:')
                 order.points_total = order.points_won + order.points_spent
-                print(order.points_total)
 
     @api.depends('order_line.total_spent_point')
     def compute_points_spent(self):
@@ -65,11 +63,7 @@ class SaleOrder(models.Model):
                     points += float_round(loyalty.pp_order, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
                 if (loyalty.rule_ids and loyalty.cumulative) or (not loyalty.rule_ids):
                     if loyalty.pp_currency:
-                        print('compute_points_won:')
                         points += float_round(sum(order_lines.mapped('price_total')) * loyalty.pp_currency, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
-                        print(points)
-                        print('sum(order_lines.mapped)')
-                        print(sum(order_lines.mapped('price_total')))
                     if loyalty.pp_product:
                         total_point = sum(order_lines.mapped('product_uom_qty')) * loyalty.pp_product
                         points += float_round(total_point, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
@@ -97,7 +91,6 @@ class SaleOrder(models.Model):
                 order.points_won = points
 
     def action_confirm(self):
-        print('action_confirm')
         for order in self:
             if order.partner_id:
                 loyalty = order.company_id.loyalty_id
@@ -149,7 +142,6 @@ class SaleOrder(models.Model):
         return super(SaleOrder, self).action_confirm()
 
     def action_cancel(self):
-        print('action_cancel')
         res = super(SaleOrder, self).action_cancel()
         for order in self:
             points_history = self.env['sale.loyalty.points.history'].search([('sale_order_id', '=', order.id)])
@@ -185,12 +177,8 @@ class SaleOrder(models.Model):
 
         pd = self.env['decimal.precision'].precision_get('Sale Loyalty')
         product = self.env.ref('sale_loyalty.sale_loyalty_product_redeem')
-        print('self')
-        print(self)
-
         default_points = min(self.partner_id.loyalty_points + self.points_spent, float_round(self.amount_total / product.lst_price, precision_digits=pd) + self.points_spent)
-        print('default_points')
-        print(default_points)
+
         if default_points <= 0.00:
             raise UserError(_("Customer don't have enough loyalty points to redeem !"))
         ctx = self.env.context.copy()
