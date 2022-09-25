@@ -181,44 +181,50 @@ class GenerateCommissionsPeriod(models.Model):
 
 
         for order in orders:
-            print(order, order.amount_total)
+            print(order, order.id, order.amount_total)
             print('vendedor:', order.partner_id.id, order.partner_id.name)
             print('promotor:', order.partner_id.guess_by.id)
             print('lider:', order.partner_id.guess_by.guess_by.id)
 
-            if order.partner_id.guess_by.id:
-                for i in range(len(promotors)):
-                    if order.partner_id.guess_by.id == promotors[i][0]:
-                        _commissions_to_pay = {
-                            'sale_id': order.id,
-                            'guess_by': order.partner_id.guess_by.id,
-                            'seller_level': '2',
-                            'sale_amount': order.amount_total,
-                            'team_id': order.team_id.id,
-                            'commission': promotors[i][3],
-                            'commission_amount': (order.amount_total * promotors[i][3]) /100,
-                            'sale_date': order.date_order,
-                            'commission_paid': 0.0,
-                            'commision_status': False
-                        }
-                        self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
+            promotor = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', order.id),
+                                                                             ('guess_by','=', order.partner_id.guess_by.id)])
+            if not promotor:
+                if order.partner_id.guess_by.id:
+                    for i in range(len(promotors)):
+                        if order.partner_id.guess_by.id == promotors[i][0]:
+                            _commissions_to_pay = {
+                                'sale_id': order.id,
+                                'guess_by': order.partner_id.guess_by.id,
+                                'seller_level': '2',
+                                'sale_amount': order.amount_total,
+                                'team_id': order.team_id.id,
+                                'commission': promotors[i][3],
+                                'commission_amount': (order.amount_total * promotors[i][3]) /100,
+                                'sale_date': order.date_order,
+                                'commission_paid': 0.0,
+                                'commision_status': False
+                            }
+                            self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
 
-            if order.partner_id.guess_by.guess_by.id:
-                for i in range(len(leaders)):
-                    if order.partner_id.guess_by.guess_by.id == leaders[i][0]:
-                        _commissions_to_pay = {
-                            'sale_id': order.id,
-                            'guess_by': order.partner_id.guess_by.guess_by.id,
-                            'seller_level': '1',
-                            'sale_amount': order.amount_total,
-                            'team_id': order.team_id.id,
-                            'commission': leaders[i][2],
-                            'commission_amount': (order.amount_total * leaders[i][2]) /100,
-                            'sale_date': order.date_order,
-                            'commission_paid': 0.0,
-                            'commision_status': False
-                        }
-                        self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
+            lider = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', order.id),
+                                                                ('guess_by', '=',order.partner_id.guess_by.guess_by.id)])
+            if not lider:
+                if order.partner_id.guess_by.guess_by.id:
+                    for i in range(len(leaders)):
+                        if order.partner_id.guess_by.guess_by.id == leaders[i][0]:
+                            _commissions_to_pay = {
+                                'sale_id': order.id,
+                                'guess_by': order.partner_id.guess_by.guess_by.id,
+                                'seller_level': '1',
+                                'sale_amount': order.amount_total,
+                                'team_id': order.team_id.id,
+                                'commission': leaders[i][2],
+                                'commission_amount': (order.amount_total * leaders[i][2]) /100,
+                                'sale_date': order.date_order,
+                                'commission_paid': 0.0,
+                                'commision_status': False
+                            }
+                            self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
 
     @api.constrains('endDate')
     def _check_endDate(self):
@@ -242,9 +248,9 @@ class ad_commission_to_pay(models.Model):
      commission_paid = fields.Float(string="Comision pagada", readonly=True)
      commision_status = fields.Boolean(string="Pagada", readonly=True)
 
-     _sql_constraints = [
-         ('record_uniq', 'unique(sale_id, guess_by)', 'Ya existe el registro de pago de comisión!'),
-     ]
+     # _sql_constraints = [
+     #     ('record_uniq', 'unique(sale_id, guess_by)', 'Ya existe el registro de pago de comisión!'),
+     # ]
 
      def pay_commissions(self):
         print ('boton header')
@@ -253,6 +259,7 @@ class ad_commission_to_pay(models.Model):
             if record.commission_paid == 0.0:
                 record.commission_pay_date = datetime.strftime(fields.Datetime.context_timestamp(record, datetime.now()), "%Y-%m-%d %H:%M:%S")
                 record.commission_paid = record.commission_amount
+                record.guess_by.commission_won += record.commission_amount
 
      #      order_paid = True
      #      for record in self:
