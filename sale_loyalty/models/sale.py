@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Powered by Kanak Infosystems LLP.
-# © 2020 Kanak Infosystems LLP. (<https://www.kanakinfosystems.com>).
+# Powered by Mastermind Software Services
+# © 2022 Mastermind Software Services (<https://www.mss.mx>).
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
@@ -61,13 +61,13 @@ class SaleOrder(models.Model):
                     order_lines = order_lines.filtered(lambda x: x.product_id not in loyalty.pe_products)
                 if order_lines:
                     points += float_round(loyalty.pp_order, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
-                if (loyalty.rule_ids and loyalty.cumulative) or (not loyalty.rule_ids):
+                if ((loyalty.rule_ids or loyalty.bonus_ids) and loyalty.cumulative) or (not loyalty.rule_ids and not loyalty.bonus_ids):
                     if loyalty.pp_currency:
                         points += float_round(sum(order_lines.mapped('price_total')) * loyalty.pp_currency, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
                     if loyalty.pp_product:
                         total_point = sum(order_lines.mapped('product_uom_qty')) * loyalty.pp_product
                         points += float_round(total_point, precision_rounding=loyalty.rounding, rounding_method=loyalty.rounding_method)
-                if loyalty.rule_ids:
+                if loyalty.rule_ids and ((loyalty.bonus_ids and loyalty.cumulative) or (not loyalty.bonus_ids)):
                     for rule in loyalty.rule_ids:
                         if rule.rule_type == 'product':
                             lines = order_lines.filtered(lambda l: l.product_id == rule.product_id)
@@ -88,10 +88,14 @@ class SaleOrder(models.Model):
                                 else:
                                     pp_currency_point = total_price * loyalty.pp_currency
                                 points += float_round((pp_currency_point + pp_product_point), precision_rounding=rule.rounding, rounding_method=rule.rounding_method)
+                if loyalty.bonus_ids:
+                    order_amount = sum(order_lines.mapped('price_total'))
+                    bonus = loyalty.bonus_ids.filtered(lambda x: x.order_min_amount <= order_amount and x.order_max_amount >= order_amount)
+                    if bonus and len(bonus) == 1:
+                        points += bonus.pp_order;
                 order.points_won = points
 
     def action_confirm(self):
-        print('action_confirm')
         for order in self:
             if order.partner_id:
                 loyalty = order.company_id.loyalty_id
@@ -143,15 +147,10 @@ class SaleOrder(models.Model):
         return super(SaleOrder, self).action_confirm()
 
     def action_cancel(self):
-        print('action_cancel')
         res = super(SaleOrder, self).action_cancel()
         for order in self:
             points_history = self.env['sale.loyalty.points.history'].search([('sale_order_id', '=', order.id)])
             if points_history:
-                # print(points_history)
-                # points_history.write({
-                #     'points': 0.00
-                # })
                 order.partner_id.loyalty_points -= order.points_won
                 points_history.action_cancel()
         return res
@@ -183,12 +182,8 @@ class SaleOrder(models.Model):
 
         pd = self.env['decimal.precision'].precision_get('Sale Loyalty')
         product = self.env.ref('sale_loyalty.sale_loyalty_product_redeem')
-        print('self')
-        print(self)
-
         default_points = min(self.partner_id.loyalty_points + self.points_spent, float_round(self.amount_total / product.lst_price, precision_digits=pd) + self.points_spent)
-        print('default_points')
-        print(default_points)
+
         if default_points <= 0.00:
             raise UserError(_("Customer don't have enough loyalty points to redeem !"))
         ctx = self.env.context.copy()

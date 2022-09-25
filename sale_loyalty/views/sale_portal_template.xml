@@ -31,10 +31,20 @@
             <div class='mt8'>
                 <b>
                     <i class="fa fa-trophy mr8" />
-                    <span>Sale Loyalty Points : <t t-esc='user_id.partner_id.loyalty_points' /></span>
+                    <span>Crédito : <t t-esc='user_id.partner_id.credit_amount' /></span>
+                </b>
+                <br></br>
+                <b>
+                    <i class="fa fa-trophy mr8" />
+                    <span>Comisiones pagadas : <t t-esc='user_id.partner_id.commission_won' /></span>
+                </b>
+                <br></br>
+                <b>
+                    <i class="fa fa-trophy mr8" />
+                    <span>Bonos : <t t-esc='user_id.partner_id.loyalty_points' /></span>
                 </b>
                 <div class="mt4">
-                    Sale Loyalty Points Report: <a class="o_download_btn ml4" t-att-href="user_id.partner_id.get_portal_pdf_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download"/></a>
+                    Reporte de Bonos: <a class="o_download_btn ml4" t-att-href="user_id.partner_id.get_portal_pdf_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download"/></a>
                     <a class="o_print_btn ml4" t-att-href="user_id.partner_id.get_portal_pdf_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/></a>
                 </div>
             </div>
