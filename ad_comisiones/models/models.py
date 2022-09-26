@@ -38,7 +38,6 @@ class CustomSaleOrder(models.Model):
     commission_paid = fields.Boolean(string='Comisión pagada', default=False, readonly=True)
     pending_amount = fields.Float(string='Saldo pendiente',compute="_pending_amount", readonly = True)
 
-
     @api.depends('partner_id')
     def _pending_amount(self):
         # se obtienen las facturas pendientes de pago y con pago parcial pendiente, se calcula y se muestra en pantalla
@@ -84,12 +83,12 @@ class GenerateCommissionsPeriod(models.Model):
 
         # Se recorren todas las ordenes para buscar los promotores y lideres
         for order in orders:
-            print(order, order.amount_total)
-            print('vendedor:', order.partner_id.id, order.partner_id.name)  # vendedor
+            #print(order, order.amount_total)
+            #print('vendedor:', order.partner_id.id, order.partner_id.name)  # vendedor
 
             # si hay promotor
             if order.partner_id.guess_by.id:
-                print('promotor:', order.partner_id.guess_by.id, order.partner_id.guess_by.name)
+                #print('promotor:', order.partner_id.guess_by.id, order.partner_id.guess_by.name)
                 if len(promotors) > 0:
                     for i in range(len(promotors)):
                         # for j in range(len(promotors[i])):
@@ -97,7 +96,7 @@ class GenerateCommissionsPeriod(models.Model):
                         if order.partner_id.guess_by.id == promotors[i][0]:
                             # bucamos que el vendedor no se repita
                             for j in range(len(sellers)):
-                                print(order.partner_id.id, sellers[j])
+                                #print(order.partner_id.id, sellers[j])
                                 if order.partner_id.id == sellers[j]:
                                     exist_seller = True
                             # si el vencedor no existe, lo sumamos a la cuenta de vendedores del promotor
@@ -133,17 +132,17 @@ class GenerateCommissionsPeriod(models.Model):
                 # print(order.partner_id.guess_by.guess_by.id)  # lider
                 # print(self.num_sellers_by_promotor(orders, order.partner_id.guess_by.id))
 
-        print('Promotores - ventas')
-        for i in range(len(promotors)):
-            for j in range(len(promotors[i])):
-                print(promotors[i][j], end=' ')
-            print()
-
-        print('Lider - ventas')
-        for i in range(len(leaders)):
-            for j in range(len(leaders[i])):
-                print(leaders[i][j], end=' ')
-            print()
+        # print('Promotores - ventas')
+        # for i in range(len(promotors)):
+        #     for j in range(len(promotors[i])):
+        #         print(promotors[i][j], end=' ')
+        #     print()
+        #
+        # print('Lider - ventas')
+        # for i in range(len(leaders)):
+        #     for j in range(len(leaders[i])):
+        #         print(leaders[i][j], end=' ')
+        #     print()
 
         _commission_values_N1 = self.env['ad_comisiones.ad_comisiones'].search(
             [('sale_level', '=', 1), ('commision_status', '=', True)])
@@ -167,24 +166,24 @@ class GenerateCommissionsPeriod(models.Model):
         for i in range(len(leaders)):
             leaders[i][2] = _commission_values_N1.sale_commision
 
-        print('Promotores - ventas')
-        for i in range(len(promotors)):
-            for j in range(len(promotors[i])):
-                print(promotors[i][j], end=' ')
-            print()
-
-        print('Lider - ventas')
-        for i in range(len(leaders)):
-            for j in range(len(leaders[i])):
-                print(leaders[i][j], end=' ')
-            print()
+        # print('Promotores - ventas')
+        # for i in range(len(promotors)):
+        #     for j in range(len(promotors[i])):
+        #         print(promotors[i][j], end=' ')
+        #     print()
+        #
+        # print('Lider - ventas')
+        # for i in range(len(leaders)):
+        #     for j in range(len(leaders[i])):
+        #         print(leaders[i][j], end=' ')
+        #     print()
 
 
         for order in orders:
-            print(order, order.id, order.amount_total)
-            print('vendedor:', order.partner_id.id, order.partner_id.name)
-            print('promotor:', order.partner_id.guess_by.id)
-            print('lider:', order.partner_id.guess_by.guess_by.id)
+            # print(order, order.id, order.amount_total)
+            # print('vendedor:', order.partner_id.id, order.partner_id.name)
+            # print('promotor:', order.partner_id.guess_by.id)
+            # print('lider:', order.partner_id.guess_by.guess_by.id)
 
             promotor = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', order.id),
                                                                              ('guess_by','=', order.partner_id.guess_by.id)])
@@ -247,6 +246,7 @@ class ad_commission_to_pay(models.Model):
      commission_pay_date = fields.Datetime(string='Fecha pago de comisión', readonly=True)
      commission_paid = fields.Float(string="Comision pagada", readonly=True)
      commision_status = fields.Boolean(string="Pagada", readonly=True)
+
 
      # _sql_constraints = [
      #     ('record_uniq', 'unique(sale_id, guess_by)', 'Ya existe el registro de pago de comisión!'),

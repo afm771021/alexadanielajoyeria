@@ -4,21 +4,18 @@
         <t t-call="web.external_layout">
             <br/>
             <div class="page">
-                <h2 class='text-center mb16'>Loyalty Points History</h2>
+                <h2 class='text-center mb16'>Bonos</h2>
                 <h2>
                     <span t-field="o.name" />
                 </h2>
-                <h6>
-                    Total Loyalty Points: <span t-field='o.loyalty_points' />
-                </h6>
                 <table class="table table-sm o_main_table mt16" name="loyalty_points_history_line_table">
                     <thead>
                         <tr>
                             <t t-set="colspan" t-value="6" />
-                            <th name="th_date" class="text-left"><span>Date</span></th>
-                            <th name="th_order" class="text-left"><span>Sale Order</span></th>
-                            <th name="th_type" class="text-left"><span>Type</span></th>
-                            <th name="th_points" class="text-right"><span>Points</span></th>
+                            <th name="th_date" class="text-left"><span>Fecha</span></th>
+                            <th name="th_order" class="text-left"><span>No. Orden</span></th>
+                            <th name="th_type" class="text-left"><span>Tipo</span></th>
+                            <th name="th_points" class="text-right"><span>Bonos</span></th>
                         </tr>
                     </thead>
                     <tbody class="loyalty_points_history_tbody">
@@ -32,6 +29,38 @@
                         </t>
                     </tbody>
                 </table>
+                <h6>
+                    Total Bonos: <span t-field='o.loyalty_points' />
+                </h6>
+            </div>
+             <div class="page">
+                <h2 class='text-center mb16'>Comisiones</h2>
+                <table class="table table-sm o_main_table mt16" name="loyalty_points_history_line_table">
+                    <thead>
+                        <tr>
+                            <t t-set="colspan" t-value="6" />
+                            <th name="th_date" class="text-left"><span>Fecha de pago</span></th>
+                            <th name="th_order" class="text-left"><span>No. Orden</span></th>
+                            <th name="th_type" class="text-left"><span>Equipo</span></th>
+                            <th name="th_points" class="text-right"><span>Comisión</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="loyalty_points_history_tbody">
+                        <t t-set="totalcomision" t-value="0" />
+                        <t t-foreach="o.get_commission_history()" t-as="line">
+                            <tr>
+                                <td class="text-left"><span t-field="line.commission_pay_date" /></td>
+                                <td class="text-left"><span t-field="line.sale_id.name" /></td>
+                                <td class="text-left"><span t-field="line.team_id.name" /></td>
+                                <td class="text-right">$<span t-field="line.commission_amount" /></td>
+                                <t t-set="totalcomision" t-value="totalcomision+line.commission_amount" />
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                 <h6>
+                    Total comisiones: $<span t-esc="totalcomision"/>
+                </h6>
             </div>
         </t>
     </template>

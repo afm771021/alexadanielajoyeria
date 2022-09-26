@@ -16,6 +16,11 @@ class ResPartner(models.Model):
         points_history = self.env['sale.loyalty.points.history'].search([('partner_id', '=', self.id), ('state', '=', 'confirmed')])
         return points_history
 
+    def get_commission_history(self):
+        self.ensure_one()
+        commission_history = self.env['ad_commissions.commissions_to_pay'].search([('guess_by','=',self.id),('commision_status','=',True)])
+        return commission_history
+
     def get_portal_pdf_url(self, suffix=None, report_type=None, download=None):
         self.ensure_one()
         url = '/my/loyalty/history/%s?%s%s' % (
