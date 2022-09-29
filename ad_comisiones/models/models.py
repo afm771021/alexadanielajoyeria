@@ -76,7 +76,6 @@ class CustomSaleOrder(models.Model):
         #     'price_unit': 211.00
         # })
 
-
 class GenerateCommissionsPeriod(models.Model):
     _name = 'ad_comisiones.ad_generacomisiones'
     _description = 'Modelo para generacion de comisiones'
