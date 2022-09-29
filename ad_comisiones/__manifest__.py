@@ -9,6 +9,7 @@
     'category': 'Sales',
     'version': '0.1',
     'depends': ['base', 'sale', 'hr'],
+    'installable': True,
     'application': True,
     # always loaded
     'data': [
