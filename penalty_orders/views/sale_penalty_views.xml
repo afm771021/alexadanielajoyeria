@@ -16,6 +16,7 @@
                         <field name="start_days_late" />
                         <field name="end_days_late" />
                         <field name="interest_rate" widget="percentage" />
+                        <field name="penalty_product_id" />
                     </group>
                 </sheet>
             </form>

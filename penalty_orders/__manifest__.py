@@ -17,7 +17,8 @@
     'data': [
         'security/sale_penalty_rules_security.xml',
         'security/ir.model.access.csv',
-        'views/sale_penalty_views.xml'
+        'views/sale_penalty_views.xml',
+        'views/sale_view.xml'
     ],
     'sequence': 1,
     'installable': True,
