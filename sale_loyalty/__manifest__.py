@@ -16,7 +16,7 @@
     'license': 'OPL-1',
     'author': 'Mastermind Software Services',
     'website': 'https://www.mss.mx',
-    'depends': ['sale_management','ad_comisiones'],
+    'depends': ['sale_management'],
     'data': [
         'security/sale_loyalty_security.xml',
         'security/ir.model.access.csv',
