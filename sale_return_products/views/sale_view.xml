@@ -6,7 +6,8 @@
         <field name="inherit_id" ref="sale.view_order_form" />
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_return_products" type="object" string="Return Products" icon="fa-reply-all" class="btn btn-primary" attrs="{'invisible': ['|', ('amount_total', '&lt;=', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
+                <field name="pending_return_lines" invisible="1"/>
+                <button name="action_return_products" type="object" string="Return Products" icon="fa-reply-all" class="btn btn-primary" attrs="{'invisible': ['|', ('pending_return_lines', '=', False), ('state', 'in', ['sale', 'done', 'cancel'])]}">
                 </button>
             </xpath>
             <xpath expr="//page[@name='order_lines']" position="after">

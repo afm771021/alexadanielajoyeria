@@ -8,6 +8,17 @@ class SaleOrder(models.Model):
     return_line = fields.One2many('sale.order.return', 'order_id', string='Order Return Lines',
                                   states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True,
                                   auto_join=True)
+    pending_return_lines = fields.Boolean(string='Pending Return Lines', compute="_compute_pending_return_lines", store=False)
+
+    @api.depends('return_line')
+    def _compute_pending_return_lines(self):
+        self.ensure_one()
+        for order in self:
+            return_lines = order.return_line.filtered(lambda x: x.processed is False)
+            if return_lines:
+                self.pending_return_lines = True
+            else:
+                self.pending_return_lines = False
 
     def action_return_products(self):
         print('action_return_products')

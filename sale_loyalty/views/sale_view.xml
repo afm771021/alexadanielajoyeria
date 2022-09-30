@@ -12,7 +12,7 @@
                 <field name="total_spent_point" attrs="{'column_invisible': [('parent.reward_line_available', '=', False)]}" />
             </xpath>
             <xpath expr="//header" position="inside">
-                <button name="button_reward" type="object" string="Get Rewards" icon="fa-star" class="btn btn-primary" attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}">
+                <button name="button_reward" type="object" string="Get Rewards" icon="fa-star" class="btn btn-primary" attrs="{'invisible': True}">
                 </button>
                 <field name="amount_total" invisible="1"/>
                 <button name="action_redeem_points" type="object" string="Redeem Points" icon="fa-star" class="btn btn-primary" attrs="{'invisible': ['|', ('amount_total', '&lt;=', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
