@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ad_comisiones_ad_comisiones,ad_comisiones.ad_comisiones,ad_comisiones.ad_comisiones,1,1,1,1,1
-access_ad_comisiones_ad_comisiones2,ad_commissions.commissions_to_pay,ad_commissions.commissions_to_pay,1,1,1,1,1
-access_ad_comisiones_ad_comisiones3,ad_comisiones.ad_generacomisiones,ad_comisiones.ad_generacomisiones,1,1,1,1,1
+access_adcomisiones_adcomisiones,adcomisiones.adcomisiones,model_adcomisiones.adcomisiones,sales_team.group_sale_manager,1,1,1,1
+access_adcomisiones_commissionstopay,adcommissions.commissionstopay,model_adcommissions.commissionstopay,sales_team.group_sale_manager,1,1,1,1
+access_adcomisiones_adgeneracomisiones,adcomisiones.adgeneracomisiones,model_adcomisiones.adgeneracomisiones,sales_team.group_sale_manager,1,1,1,1

@@ -7,7 +7,7 @@ from odoo.addons.sale.models.sale_order import SaleOrder
 from odoo.exceptions import ValidationError
 
 class ad_comisiones(models.Model):
-    _name = 'ad_comisiones.ad_comisiones'
+    _name = 'adcomisiones.adcomisiones'
     _description = 'Modelo para generacion de catalogo de comisiones'
 
     sale_criteria_type = fields.Selection([('I', 'Integrantes'), ('2', 'Monto Venta')], string='Criterio')
@@ -40,7 +40,7 @@ class CustomerAddInfo(models.Model):
                 'name': _('Pago de comisiones'),
                 'type': 'ir.actions.act_window',
                 'view_mode': 'tree,form',
-                'res_model': 'ad_commissions.commissions_to_pay',
+                'res_model': 'adcommissions.commissionstopay',
                 'domain': [('guess_by', 'in', self.ids), ('commision_status', "=", True)]
             }
 
@@ -77,7 +77,7 @@ class CustomSaleOrder(models.Model):
         # })
 
 class GenerateCommissionsPeriod(models.Model):
-    _name = 'ad_comisiones.ad_generacomisiones'
+    _name = 'adcomisiones.adgeneracomisiones'
     _description = 'Modelo para generacion de comisiones'
 
     initDate = fields.Date(string='Fecha inicial', required=True)
@@ -168,13 +168,13 @@ class GenerateCommissionsPeriod(models.Model):
         #         print(leaders[i][j], end=' ')
         #     print()
 
-        _commission_values_N1 = self.env['ad_comisiones.ad_comisiones'].search(
+        _commission_values_N1 = self.env['adcomisiones.adcomisiones'].search(
             [('sale_level', '=', 1), ('commision_status', '=', True)])
 
-        _commission_values_N2_amount = self.env['ad_comisiones.ad_comisiones'].search(
+        _commission_values_N2_amount = self.env['adcomisiones.adcomisiones'].search(
             [('sale_level', '=', 2), ('sale_criteria_type','=','2'), ('commision_status', '=', True)])
 
-        _commission_values_N2_num_per = self.env['ad_comisiones.ad_comisiones'].search(
+        _commission_values_N2_num_per = self.env['adcomisiones.adcomisiones'].search(
             [('sale_level', '=', 2), ('sale_criteria_type', '=', 'I'), ('commision_status', '=', True)])
 
         for i in range(len(promotors)):
@@ -209,7 +209,7 @@ class GenerateCommissionsPeriod(models.Model):
             # print('promotor:', order.partner_id.guess_by.id)
             # print('lider:', order.partner_id.guess_by.guess_by.id)
 
-            promotor = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', order.id),
+            promotor = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
                                                                              ('guess_by','=', order.partner_id.guess_by.id)])
             if not promotor:
                 if order.partner_id.guess_by.id:
@@ -227,9 +227,9 @@ class GenerateCommissionsPeriod(models.Model):
                                 'commission_paid': 0.0,
                                 'commision_status': False
                             }
-                            self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                            self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
 
-            lider = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', order.id),
+            lider = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
                                                                 ('guess_by', '=',order.partner_id.guess_by.guess_by.id)])
             if not lider:
                 if order.partner_id.guess_by.guess_by.id:
@@ -247,7 +247,7 @@ class GenerateCommissionsPeriod(models.Model):
                                 'commission_paid': 0.0,
                                 'commision_status': False
                             }
-                            self.env['ad_commissions.commissions_to_pay'].create(_commissions_to_pay)
+                            self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
 
     @api.constrains('endDate')
     def _check_endDate(self):
@@ -256,7 +256,7 @@ class GenerateCommissionsPeriod(models.Model):
                 raise ValidationError("Fecha final debe ser mayor a la fecha inicial")
 
 class ad_commission_to_pay(models.Model):
-     _name= 'ad_commissions.commissions_to_pay'
+     _name= 'adcommissions.commissionstopay'
      _description = 'Registro de las comisiones a pagar'
 
      sale_id = fields.Many2one(string='Nota de Venta', comodel_name='sale.order', required=True, readonly=True)
@@ -285,7 +285,7 @@ class ad_commission_to_pay(models.Model):
                 record.commission_pay_date = datetime.strftime(fields.Datetime.context_timestamp(record, datetime.now()), "%Y-%m-%d %H:%M:%S")
                 record.commission_paid = record.commission_amount
                 record.guess_by.commission_won += record.commission_amount
-                sellers = self.env['ad_commissions.commissions_to_pay'].search([('sale_id', '=', record.sale_id.id)])
+                sellers = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', record.sale_id.id)])
                 #print(sellers)
                 #print('seller.comission_status')
                 # Se revisa que el lider y promotor tengan sus comisiones pagadas
