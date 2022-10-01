@@ -285,19 +285,19 @@ class ad_commission_to_pay(models.Model):
                 record.commission_pay_date = datetime.strftime(fields.Datetime.context_timestamp(record, datetime.now()), "%Y-%m-%d %H:%M:%S")
                 record.commission_paid = record.commission_amount
                 record.guess_by.commission_won += record.commission_amount
-                sellers = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', record.sale_id.id)])
-                #print(sellers)
-                #print('seller.comission_status')
-                # Se revisa que el lider y promotor tengan sus comisiones pagadas
-                for seller in sellers:
-                    #print(seller)
-                    if not seller.commision_status:
-                         order_paid = False
-                #print(order_paid)
-                # Si ya tienen sus pagos se actualiza la orden a comision pagada
-                if order_paid:
-                    #print(record.sale_id.id)
-                    order = self.env['sale.order'].search([('id', '=', record.sale_id.id)])
-                    order.write({
-                         'commission_paid': True
-                    })
+        sellers = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', record.sale_id.id)])
+        #print(sellers)
+        #print('seller.comission_status')
+        # Se revisa que el lider y promotor tengan sus comisiones pagadas
+        for seller in sellers:
+            #print(seller)
+            if not seller.commision_status:
+                order_paid = False
+        #print(order_paid)
+        # Si ya tienen sus pagos se actualiza la orden a comision pagada
+        if order_paid:
+            #print(record.sale_id.id)
+            order = self.env['sale.order'].search([('id', '=', record.sale_id.id)])
+            order.write({
+                 'commission_paid': True
+            })

@@ -18,7 +18,7 @@ class ResPartner(models.Model):
 
     def get_commission_history(self):
         self.ensure_one()
-        commission_history = self.env['ad_commissions.commissions_to_pay'].search([('guess_by','=',self.id),('commision_status','=',True)])
+        commission_history = self.env['adcommissions.commissionstopay'].search([('guess_by','=',self.id),('commision_status','=',True)])
         return commission_history
 
     def get_portal_pdf_url(self, suffix=None, report_type=None, download=None):
