@@ -65,6 +65,7 @@
               <field name="endDate"/>
               <field name="team_id"/>
               <field name="logdate"/>
+              <field name="records"/>
                <!-- <field name="logcomments"/> -->
               <field name="commision_status"/>
             </tree>
@@ -88,6 +89,7 @@
                    <field name="initDate"/>
                   <field name="endDate"/>
                   <field name="team_id"/>
+                    <field name="records"/>
                 </group>
                 <group name="group_right">
                    <field name="logdate"/>
@@ -224,9 +226,13 @@
 
     <menuitem name="Menú" id="ad_comisiones.menu_1" parent="ad_comisiones.menu_root"/>
 
+    <menuitem name="Configuración"
+              id="ad_comisiones.configuracion"
+              parent="ad_comisiones.menu_root"/>
+
     <menuitem name="Catálogo Comisiones"
               id="ad_comisiones.menu_1_list"
-              parent="ad_comisiones.menu_1"
+              parent="ad_comisiones.configuracion"
               action="ad_comisiones.action_server"/>
 
     <menuitem name="Generar Comisiones"

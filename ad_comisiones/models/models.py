@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from odoo.addons.sale.models.sale_order import SaleOrder
 from odoo.exceptions import ValidationError
+from odoo.fields import Datetime
+
 
 class ad_comisiones(models.Model):
     _name = 'adcomisiones.adcomisiones'
@@ -64,17 +66,12 @@ class CustomSaleOrder(models.Model):
 
             record.pending_amount = sum_pending_payments
 
-    def button_interest(self):
-        print(self.id)
-        registros_a_eliminar = self.env['sale.order.line'].search([('product_id', '=', 2), ('order_id', '=', self.id)])
-        for eliminar in registros_a_eliminar:
-            eliminar.unlink()
+    # def button_interest(self):
+    #     print(self.id)
+    #     registros_a_eliminar = self.env['sale.order.line'].search([('product_id', '=', 2), ('order_id', '=', self.id)])
+    #     for eliminar in registros_a_eliminar:
+    #         eliminar.unlink()
 
-        # self.env['sale.order.line'].create({
-        #     'product_id': 2,
-        #     'order_id': self.id,
-        #     'price_unit': 211.00
-        # })
 
 class GenerateCommissionsPeriod(models.Model):
     _name = 'adcomisiones.adgeneracomisiones'
@@ -83,14 +80,15 @@ class GenerateCommissionsPeriod(models.Model):
     initDate = fields.Date(string='Fecha inicial', required=True)
     endDate = fields.Date(string='Fecha final', required=True)
     team_id = fields.Many2one('crm.team', string='Equipo', required=True)
-    logdate = fields.Datetime(string='Fecha', default=datetime.now(), readonly=True)
+    logdate = fields.Datetime(string='Fecha de generación', readonly=True)
     logcomments = fields.Text(string='Comentarios')
     commision_status = fields.Boolean(string="Generada", readonly=True)
+    records = fields.Integer(string="No. Registros", readonly=True)
     promotors = 0
     leaders = 0
 
     def button_generar(self):
-        print('Generar Comisiones')
+        #print('Generar Comisiones')
         self.commision_status = True
         sellers = []
         promotors = []
@@ -98,11 +96,16 @@ class GenerateCommissionsPeriod(models.Model):
         exist_promotor = False
         exist_seller = False
         exist_leader = False
+        num_records = 0;
 
+        # self.endDate = (datetime.strptime(self.endDate, '%Y-%m-%d')+relativedelta(days =+ 1))
+        # self.endDate = self.endDate +timedelta(days=1)
         # Buscamos todas las ordenes con estatus de facturadas que no tengan comisione pagada y que sean de un equipo
         # de ventas en particular
         orders = self.env['sale.order'].search([('invoice_status', '=', 'invoiced'),
                                                 ('commission_paid', '=', False),
+                                                ('create_date','>=', self.initDate),
+                                                ('create_date','<=', self.endDate),
                                                 ('team_id', '=', self.team_id.id)])
 
         # Se recorren todas las ordenes para buscar los promotores y lideres
@@ -228,6 +231,7 @@ class GenerateCommissionsPeriod(models.Model):
                                 'commision_status': False
                             }
                             self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+                            num_records += 1
 
             lider = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
                                                                 ('guess_by', '=',order.partner_id.guess_by.guess_by.id)])
@@ -248,12 +252,15 @@ class GenerateCommissionsPeriod(models.Model):
                                 'commision_status': False
                             }
                             self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+                            num_records += 1
+        self.records = num_records
+        self.logdate = Datetime.now()
 
     @api.constrains('endDate')
     def _check_endDate(self):
         for record in self:
             if record.endDate < record.initDate:
-                raise ValidationError("Fecha final debe ser mayor a la fecha inicial")
+                raise ValidationError("Fecha final debe ser mayor o igual a la fecha inicial")
 
 class ad_commission_to_pay(models.Model):
      _name= 'adcommissions.commissionstopay'
@@ -277,17 +284,16 @@ class ad_commission_to_pay(models.Model):
      # ]
 
      def pay_commissions(self):
-        print ('boton header')
+        #print ('boton header')
         order_paid = True
         for record in self:
             record.commision_status = True
             if record.commission_paid == 0.0:
-                record.commission_pay_date = datetime.strftime(fields.Datetime.context_timestamp(record, datetime.now()), "%Y-%m-%d %H:%M:%S")
+                record.commission_pay_date = datetime.now()
                 record.commission_paid = record.commission_amount
                 record.guess_by.commission_won += record.commission_amount
         sellers = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', record.sale_id.id)])
-        #print(sellers)
-        #print('seller.comission_status')
+
         # Se revisa que el lider y promotor tengan sus comisiones pagadas
         for seller in sellers:
             #print(seller)
