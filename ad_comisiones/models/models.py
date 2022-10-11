@@ -20,6 +20,11 @@ class ad_comisiones(models.Model):
     sale_level = fields.Selection([('1', 'Nivel Lider'), ('2', 'Nivel Promotor')], string='Nivel')
     commision_status = fields.Boolean(string='Activo')
 
+class AccountMoveCommissionGenerated(models.Model):
+    _inherit = 'account.move'
+
+    commission_generated = fields.Boolean(string='Comisión generada', default=False, readonly=True)
+
 class CustomerAddInfo(models.Model):
     _inherit = 'res.partner'
 
@@ -28,12 +33,12 @@ class CustomerAddInfo(models.Model):
     # contacto que invito al vendedor actual
     guess_by = fields.Many2one(string='Invitador Por', comodel_name='res.partner')
     # RFC del vendedor
-    vat = fields.Char(string='RFC', required=True, index=True)
+    #vat = fields.Char(string='RFC', required=True, index=True)
     # Valor de comisiones ganadas
     commission_won = fields.Float(company_dependent=True)
 
     _sql_constraints = [
-        ('vat', 'unique(vat)', 'Ya existe un registro con el mismo RFC !!')]
+        ('name', 'unique(name)', 'Ya existe un registro con el mismo nombre !!')]
 
     def action_partner_commission_history(self):
         self.ensure_one()
@@ -71,7 +76,6 @@ class CustomSaleOrder(models.Model):
     #     registros_a_eliminar = self.env['sale.order.line'].search([('product_id', '=', 2), ('order_id', '=', self.id)])
     #     for eliminar in registros_a_eliminar:
     #         eliminar.unlink()
-
 
 class GenerateCommissionsPeriod(models.Model):
     _name = 'adcomisiones.adgeneracomisiones'
@@ -193,17 +197,17 @@ class GenerateCommissionsPeriod(models.Model):
         for i in range(len(leaders)):
             leaders[i][2] = _commission_values_N1.sale_commision
 
-        # print('Promotores - ventas')
-        # for i in range(len(promotors)):
-        #     for j in range(len(promotors[i])):
-        #         print(promotors[i][j], end=' ')
-        #     print()
-        #
-        # print('Lider - ventas')
-        # for i in range(len(leaders)):
-        #     for j in range(len(leaders[i])):
-        #         print(leaders[i][j], end=' ')
-        #     print()
+        print('Promotores - ventas')
+        for i in range(len(promotors)):
+            for j in range(len(promotors[i])):
+                print(promotors[i][j], end=' ')
+            print()
+
+        print('Lider - ventas')
+        for i in range(len(leaders)):
+            for j in range(len(leaders[i])):
+                print(leaders[i][j], end=' ')
+            print()
 
 
         for order in orders:
@@ -212,47 +216,100 @@ class GenerateCommissionsPeriod(models.Model):
             # print('promotor:', order.partner_id.guess_by.id)
             # print('lider:', order.partner_id.guess_by.guess_by.id)
 
-            promotor = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
-                                                                             ('guess_by','=', order.partner_id.guess_by.id)])
-            if not promotor:
-                if order.partner_id.guess_by.id:
-                    for i in range(len(promotors)):
-                        if order.partner_id.guess_by.id == promotors[i][0]:
-                            _commissions_to_pay = {
-                                'sale_id': order.id,
-                                'guess_by': order.partner_id.guess_by.id,
-                                'seller_level': '2',
-                                'sale_amount': order.amount_total,
-                                'team_id': order.team_id.id,
-                                'commission': promotors[i][3],
-                                'commission_amount': (order.amount_total * promotors[i][3]) /100,
-                                'sale_date': order.date_order,
-                                'commission_paid': 0.0,
-                                'commision_status': False
-                            }
-                            self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
-                            num_records += 1
+            invoice = self.env['account.move'].search([('invoice_origin', '=', order.name),
+                                             ('move_type', '=', 'out_invoice'),
+                                             ('state', '=', 'posted'),
+                                             ('team_id', '=', order.team_id.id)])
 
-            lider = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
-                                                                ('guess_by', '=',order.partner_id.guess_by.guess_by.id)])
-            if not lider:
-                if order.partner_id.guess_by.guess_by.id:
-                    for i in range(len(leaders)):
-                        if order.partner_id.guess_by.guess_by.id == leaders[i][0]:
-                            _commissions_to_pay = {
-                                'sale_id': order.id,
-                                'guess_by': order.partner_id.guess_by.guess_by.id,
-                                'seller_level': '1',
-                                'sale_amount': order.amount_total,
-                                'team_id': order.team_id.id,
-                                'commission': leaders[i][2],
-                                'commission_amount': (order.amount_total * leaders[i][2]) /100,
-                                'sale_date': order.date_order,
-                                'commission_paid': 0.0,
-                                'commision_status': False
-                            }
-                            self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
-                            num_records += 1
+            if invoice:
+                invoice_details = self.env['account.move'].search([('ref', '=', invoice.payment_reference),
+                                                 ('commission_generated', '=', False),
+                                                 ('move_type', '=', 'entry'),
+                                                 ('payment_id', '!=', False),
+                                                 ('team_id', '=', order.team_id.id)])
+
+                for invoice_detail in invoice_details:
+                    if order.partner_id.guess_by.id:
+                        for i in range(len(promotors)):
+                            if order.partner_id.guess_by.id == promotors[i][0]:
+                                _commissions_to_pay = {
+                                    'sale_id': order.id,
+                                    'guess_by': order.partner_id.guess_by.id,
+                                    'seller_level': '2',
+                                    'sale_amount': order.amount_total,
+                                    'amortization_amount': invoice_detail.amount_total,
+                                    'team_id': order.team_id.id,
+                                    'commission': promotors[i][3],
+                                    'commission_amount': (invoice_detail.amount_total * promotors[i][3]) / 100,
+                                    'sale_date': order.date_order,
+                                    'commission_paid': 0.0,
+                                    'commision_status': False
+                                }
+                                self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+                                num_records += 1
+
+                    if order.partner_id.guess_by.guess_by.id:
+                        for i in range(len(leaders)):
+                            if order.partner_id.guess_by.guess_by.id == leaders[i][0]:
+                                _commissions_to_pay = {
+                                    'sale_id': order.id,
+                                    'guess_by': order.partner_id.guess_by.guess_by.id,
+                                    'seller_level': '1',
+                                    'sale_amount': order.amount_total,
+                                    'amortization_amount': invoice_detail.amount_total,
+                                    'team_id': order.team_id.id,
+                                    'commission': leaders[i][2],
+                                    'commission_amount': (invoice_detail.amount_total * leaders[i][2]) / 100,
+                                    'sale_date': order.date_order,
+                                    'commission_paid': 0.0,
+                                    'commision_status': False
+                                }
+                                self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+                                num_records += 1
+                    invoice_detail.commission_generated = True
+
+            # promotor = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
+            #                                                                  ('guess_by','=', order.partner_id.guess_by.id)])
+            # if not promotor:
+            #     if order.partner_id.guess_by.id:
+            #         for i in range(len(promotors)):
+            #             if order.partner_id.guess_by.id == promotors[i][0]:
+            #                 _commissions_to_pay = {
+            #                     'sale_id': order.id,
+            #                     'guess_by': order.partner_id.guess_by.id,
+            #                     'seller_level': '2',
+            #                     'sale_amount': order.amount_total,
+            #                     'team_id': order.team_id.id,
+            #                     'commission': promotors[i][3],
+            #                     'commission_amount': (order.amount_total * promotors[i][3]) /100,
+            #                     'sale_date': order.date_order,
+            #                     'commission_paid': 0.0,
+            #                     'commision_status': False
+            #                 }
+            #                 self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+            #                 num_records += 1
+            #
+            # lider = self.env['adcommissions.commissionstopay'].search([('sale_id', '=', order.id),
+            #                                                     ('guess_by', '=',order.partner_id.guess_by.guess_by.id)])
+            # if not lider:
+            #     if order.partner_id.guess_by.guess_by.id:
+            #         for i in range(len(leaders)):
+            #             if order.partner_id.guess_by.guess_by.id == leaders[i][0]:
+            #                 _commissions_to_pay = {
+            #                     'sale_id': order.id,
+            #                     'guess_by': order.partner_id.guess_by.guess_by.id,
+            #                     'seller_level': '1',
+            #                     'sale_amount': order.amount_total,
+            #                     'team_id': order.team_id.id,
+            #                     'commission': leaders[i][2],
+            #                     'commission_amount': (order.amount_total * leaders[i][2]) /100,
+            #                     'sale_date': order.date_order,
+            #                     'commission_paid': 0.0,
+            #                     'commision_status': False
+            #                 }
+            #                 self.env['adcommissions.commissionstopay'].create(_commissions_to_pay)
+            #                 num_records += 1
+
         self.records = num_records
         self.logdate = Datetime.now()
 
@@ -270,6 +327,7 @@ class ad_commission_to_pay(models.Model):
      guess_by = fields.Many2one(string='Nombre', comodel_name='res.partner')
      seller_level = fields.Selection([('1', 'Lider'), ('2', 'Promotor')], string='Nivel', readonly=True)
      sale_amount = fields.Float(string="Monto de la Nota", store=True, readonly=True)
+     amortization_amount = fields.Float(string="Monto abonado", store=True, readonly=True)
      team_id = fields.Many2one('crm.team', string='Equipo', required=True)
      commission = fields.Float(string="% comisión", store=True, readonly=True)
      commission_amount = fields.Float(string="Monto de comisión", store=True, readonly=True)     # compute="_commission_amount", store=True)
