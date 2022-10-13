@@ -18,6 +18,7 @@ class SaleOrder(models.Model):
     temp_points_spent = fields.Float(digits='Sale Loyalty')
     temp_points_total = fields.Float(digits='Sale Loyalty')
     reward_line_available = fields.Boolean(compute='compute_reward_line_available')
+    cancel_points = fields.Boolean(string="Cancelar Bonos", default=False)
 
     @api.depends('order_line.reward_line')
     def compute_reward_line_available(self):
@@ -32,6 +33,12 @@ class SaleOrder(models.Model):
             order.points_total = 0.00
             if order.points_won or order.points_spent:
                 order.points_total = order.points_won + order.points_spent
+            # si se cancela el bono
+            if order.cancel_points:
+                order.points_won = 0.00
+                if order.points_won or order.points_spent:
+                    order.points_total = order.points_won + order.points_spent
+        #print('compute_points_total')
 
     @api.depends('order_line.total_spent_point')
     def compute_points_spent(self):
@@ -42,6 +49,7 @@ class SaleOrder(models.Model):
 
     @api.depends('order_line')
     def compute_points_won(self):
+        #print ('compute_points_won')
         for order in self:
             loyalty = order.company_id.loyalty_id
             order.points_won = 0.00
@@ -94,6 +102,8 @@ class SaleOrder(models.Model):
                     if bonus and len(bonus) == 1:
                         points += bonus.pp_order;
                 order.points_won = points
+        if order.cancel_points:
+            order.points_won = 0.00
 
     def action_confirm(self):
         for order in self:
@@ -170,22 +180,32 @@ class SaleOrder(models.Model):
                 points_history.unlink()
         return super(SaleOrder, self).unlink()
 
+    def action_apply_bonus(self):
+        #print('aplicar Bono')
+        for order in self:
+            order.cancel_points = False
+
+    def action_cancel_bonus(self):
+        #print('Cancelar Bono')
+        for order in self:
+            order.cancel_points = True
+
     def action_redeem_points(self):
         self.ensure_one()
         if self.amount_total <= 0.00:
-            raise UserError(_('Customer can not redeem points on 0 amount order !'))
+            raise UserError(_('El vendedor no puede usar Bonos en una nota con valor 0 !!')) #Customer can not redeem points on 0 amount order !'))
         if self.partner_id.loyalty_points <= 0.00:
-            raise UserError(_("Customer don't have any loyalty points to redeem !"))
+            raise UserError(_("El vendedor no tiene monto de Bono a utilizar ! ")) #Customer don't have any loyalty points to redeem !"))
         loyalty = self.company_id.loyalty_id
         if not loyalty:
-            raise UserError(_('There is no loyalty program set in sale configuration !'))
+            raise UserError(_('No existe la configuración para el programa de Bonos ! ')) #There is no loyalty program set in sale configuration !'))
 
         pd = self.env['decimal.precision'].precision_get('Sale Loyalty')
         product = self.env.ref('sale_loyalty.sale_loyalty_product_redeem')
         default_points = min(self.partner_id.loyalty_points + self.points_spent, float_round(self.amount_total / product.lst_price, precision_digits=pd) + self.points_spent)
 
         if default_points <= 0.00:
-            raise UserError(_("Customer don't have enough loyalty points to redeem !"))
+            raise UserError(_("El vendedor no tiene suficiente monto de bono para utilizar ! ")) #Customer don't have enough loyalty points to redeem !"))
         ctx = self.env.context.copy()
         ctx.update({'default_order_id': self.id, 'default_loyalty_id': loyalty.id, 'default_points': default_points})
         return {

@@ -220,7 +220,12 @@
          <xpath expr="//field[@name='credit_amount']" position="after">
            <field name="guess_by"/>
          </xpath>
-
+        <xpath expr="//field[@name='guess_by']" position="after">
+            <field name="birthday"/>
+        </xpath>
+        <xpath expr="//field[@name='birthday']" position="after">
+            <field name="birthmonth"/>
+        </xpath>
        </field>
     </record>
 

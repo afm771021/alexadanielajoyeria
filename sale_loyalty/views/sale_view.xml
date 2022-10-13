@@ -15,7 +15,11 @@
                 <button name="button_reward" type="object" string="Get Rewards" icon="fa-star" class="btn btn-primary" attrs="{'invisible': True}">
                 </button>
                 <field name="amount_total" invisible="1"/>
-                <button name="action_redeem_points" type="object" string="Redeem Points" icon="fa-star" class="btn btn-primary" attrs="{'invisible': ['|', ('amount_total', '&lt;=', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
+                <button name="action_redeem_points" type="object" string="APLICAR BONO" icon="fa-star" class="btn btn-primary" attrs="{'invisible': ['|', ('amount_total', '&lt;=', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
+                </button>
+                <button name="action_cancel_bonus" type="object" string="CANCELAR BONO" icon="fa-star" class="btn btn-primary" attrs="{'invisible': ['|', ('points_won', '=', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
+                </button>
+                <button name="action_apply_bonus" type="object" string="CALCULAR BONO" icon="fa-star" class="btn btn-primary" attrs="{'invisible': ['|', ('points_won', '&gt;', 0.00), ('state', 'in', ['sale', 'done', 'cancel'])]}">
                 </button>
             </xpath>
             <xpath expr="//group[@name='sale_total']//field[last()]" position="after">
