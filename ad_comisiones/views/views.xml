@@ -229,6 +229,8 @@
        </field>
     </record>
 
+
+
         <!-- factura agregar la venta de referencia -->
     <record model="ir.ui.view" id="ad_comisiones_account_move_form">
       <field name="name">ad.comisiones.account.move.form</field>

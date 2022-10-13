@@ -48,12 +48,14 @@ class CustomerAddInfo(models.Model):
                                    ('Julio', 'Julio'), ('Agosto', 'Agosto'),('Septiembre','Septiembre'),
                                    ('Octubre', 'Octubre'), ('Noviembre', 'Noviembre'),('Diciembre','Diciembre')], string='Mes Cumpleaños')
 
-    #vat = fields.Char(string='RFC', required=True, index=True)
     # Valor de comisiones ganadas
     commission_won = fields.Float(company_dependent=True)
-
-    _sql_constraints = [
-        ('name', 'unique(name)', 'Ya existe un registro con el mismo nombre !!')]
+    # ubicacion en mapa google maps
+    website = fields.Char(string='Ubicación en Google', compute="_compute_google_map_location")
+    @api.depends('partner_latitude','partner_longitude')
+    def _compute_google_map_location(self):
+        #self.ensure_one()
+        self.website = 'https://www.google.com/maps/dir/?api=1&destination=' + str(self.partner_latitude) + ',' + str(self.partner_longitude)
 
     def action_partner_commission_history(self):
         self.ensure_one()
